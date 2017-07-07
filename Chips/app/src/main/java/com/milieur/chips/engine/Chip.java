@@ -20,4 +20,8 @@ public class Chip {
 	public void flick(float[] dragVector) {
 		
 	}
+	
+	public float[] getModelMatrix() {
+		return null;
+	}
 }
