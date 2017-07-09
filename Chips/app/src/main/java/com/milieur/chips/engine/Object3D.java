@@ -1,6 +1,7 @@
 package com.milieur.chips.engine;
 
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 public class Object3D {
@@ -11,10 +12,14 @@ public class Object3D {
 	
 
 	public Object3D(String filename) {
-
+		loadModel(filename);
 	}
 
 	public Object3D() {
 
+	}
+
+	private boolean loadModel(String filename) {
+		return true;
 	}
 }
