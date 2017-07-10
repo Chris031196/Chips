@@ -10,8 +10,10 @@ public class Chip {
 	private Object3D object3D;
 	
 	private Vec3 position;
-	private Vec3 velocity;
 	private Vec3 rotation;
+
+	private Vec3 posVel;
+	private Vec3 rotVel;
 	
 	public Chip(Vec3 position, Object3D object3D) {
 		this.position = position;
@@ -19,7 +21,11 @@ public class Chip {
 	}
 	
 	public void update(float deltaTime) {
-		
+		position = position.add(posVel.multiply(deltaTime));
+		posVel = posVel.multiply(0.99f);
+
+		rotation = rotation.add(rotVel.multiply(deltaTime));
+		rotVel = rotVel.multiply(0.99f);
 	}
 	
 	public void flick(float[] dragVector) {
