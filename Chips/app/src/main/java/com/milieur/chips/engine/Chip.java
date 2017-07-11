@@ -20,6 +20,10 @@ public class Chip extends DrawableObject3D{
 
 	private Vec3 posVel;
 	private Vec3 rotVel;
+
+	private Vec3 gravity;
+
+	private boolean flicked = false;
 	
 	public Chip(Level level) throws IOException {
 		this.level = level;
@@ -27,6 +31,7 @@ public class Chip extends DrawableObject3D{
 		this.rotation = new Vec3();
 		this.posVel = new Vec3();
 		this.rotVel = new Vec3();
+		this.gravity = new Vec3(0.0f, 1.0f, 0.0f);
 		loadModel(Controller.getResource(R.raw.chip));
 		GraphicsRenderer.register(this);
 	}
@@ -34,6 +39,7 @@ public class Chip extends DrawableObject3D{
 	@Override
 	public void update(float deltaTime) {
 		position = position.add(posVel.multiply(deltaTime));
+		posVel = posVel.add(gravity.multiply(deltaTime));
 		posVel = posVel.multiply(0.99f);
 
 		rotation = rotation.add(rotVel.multiply(deltaTime));
@@ -41,8 +47,11 @@ public class Chip extends DrawableObject3D{
 	}
 	
 	public void flick(float xDir, float yDir) {
+		if(flicked){
+			return;
+		}
 		Vec3 vec = new Vec3(xDir, yDir, 0f);
-		posVel = new Vec3(vec.getX() * 0.1f, -vec.getY() * 0.1f, vec.getY() * 0.1f);
+		posVel = new Vec3(vec.getX() * 0.4f, -vec.getY() * 0.4f, vec.getY() * 0.4f);
 
 		float[] rot = new float[16];
 		Matrix.setRotateM(rot, 0, vec.getLength() * 1.0f, vec.getX() * 1.0f, vec.getY() * 1.0f, 0f);
