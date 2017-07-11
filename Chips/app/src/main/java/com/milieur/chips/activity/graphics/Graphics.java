@@ -3,6 +3,7 @@ package com.milieur.chips.activity.graphics;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 
+import com.milieur.chips.activity.Controller;
 import com.milieur.chips.activity.LevelActivity;
 
 /**
@@ -11,19 +12,15 @@ import com.milieur.chips.activity.LevelActivity;
 
 public class Graphics extends GLSurfaceView {
 
-    private LevelActivity activity;
 
-    public Graphics(Context context, LevelActivity activity) {
+    public Graphics(Context context) {
         super(context);
+        setEGLContextClientVersion(2);
         setRenderer(new GraphicsRenderer(this));
     }
 
     public void initFailed(){
-        activity.finish();
-    }
-
-    public LevelActivity getActivity() {
-        return activity;
+        Controller.error("Init Failed!");
     }
 
 }

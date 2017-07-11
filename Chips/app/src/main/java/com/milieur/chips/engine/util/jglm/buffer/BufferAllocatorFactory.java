@@ -14,10 +14,11 @@
  */
 package com.milieur.chips.engine.util.jglm.buffer;
 
+import com.milieur.chips.engine.util.jglm.support.JglmConfig;
+
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import com.hackoeur.jglm.support.JglmConfig;
 
 /**
  * Gets an instance of a {@link BufferAllocator}.  There is a pre-configured

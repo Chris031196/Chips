@@ -3,12 +3,16 @@ package com.milieur.chips.activity.graphics;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.os.SystemClock;
 
 import com.milieur.chips.R;
+import com.milieur.chips.activity.Controller;
+import com.milieur.chips.engine.DrawableObject3D;
 import com.milieur.chips.engine.util.jglm.Mat4;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -27,16 +31,21 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
     private int shader_m;
     private int shader_v;
     private int shader_p;
+    private int shader_l;
 
     //Matrices
-    private Mat4 matrix_m;
-    private Mat4 matrix_v;
     private Mat4 matrix_p;
+
+    private static ArrayList<DrawableObject3D> objects = new ArrayList<>();
 
 
     public GraphicsRenderer(Graphics graphics) {
         super();
         this.graphics = graphics;
+    }
+
+    public static void register(DrawableObject3D object) {
+        objects.add(object);
     }
 
     @Override
@@ -55,6 +64,7 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
         shader_m = GLES20.glGetUniformLocation(shader_program, "m");
         shader_v = GLES20.glGetUniformLocation(shader_program, "v");
         shader_p = GLES20.glGetUniformLocation(shader_program, "p");
+        shader_l = GLES20.glGetUniformLocation(shader_program, "light_position");
     }
 
     @Override
@@ -64,28 +74,61 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
         // make adjustments for screen ratio
         float ratio = (float) width / height;
         float[] projection = new float[16];
-        Matrix.frustumM(projection, 0, -ratio, ratio, -1f, 1f, 1f, 10f);
+        Matrix.frustumM(projection, 0, -ratio, ratio, -1f, 1f, 1f, 30f);
         matrix_p = new Mat4(projection);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glUseProgram(shader_program);
 
+        float[] vMat = new float[16];
+        Matrix.setLookAtM(vMat, 0, 0f, 3f, 4f, 0f, 0f, 0f, 0f, 1f, 0f);
+        Mat4 matrix_v = new Mat4(vMat);
+
+        for(DrawableObject3D object: objects) {
+            object.update(1.0f);
+            Mat4 matrix_m = object.getModelMatrix();
+            Mat4 matrix_mvp = matrix_p.multiply(matrix_v).multiply(matrix_m);
+
+            GLES20.glUniformMatrix4fv(shader_m, 1, false, matrix_m.getBuffer());
+            GLES20.glUniformMatrix4fv(shader_v, 1, false, matrix_v.getBuffer());
+            GLES20.glUniformMatrix4fv(shader_p, 1, false, matrix_p.getBuffer());
+            GLES20.glUniformMatrix4fv(shader_mvp, 1, false, matrix_mvp.getBuffer());
+            GLES20.glUniform3fv(shader_l, 1, new float[] {30f, 10f, 10f}, 0);
+
+
+            //drawing
+            GLES20.glEnableVertexAttribArray(0);
+            GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, object.getvBuffer());
+
+            GLES20.glEnableVertexAttribArray(1);
+            GLES20.glVertexAttribPointer(1, 3, GLES20.GL_FLOAT, false, 0, object.getnBuffer());
+
+            GLES20.glDrawElements(GLES20.GL_TRIANGLES, object.getNumVertex() * 3, GLES20.GL_UNSIGNED_INT , object.getiBuffer());
+
+            GLES20.glDisableVertexAttribArray(0);
+            GLES20.glDisableVertexAttribArray(1);
+        }
     }
 
     public boolean initShaders() {
+
+        System.err.println("OpenGL version is " + GLES20.glGetString(GLES20.GL_VERSION));
+
         String vertexShaderCode = "";
         String fragmentxShaderCode = "";
         try {
             //read vertex shader code
-            BufferedReader reader = new BufferedReader(new InputStreamReader(graphics.getActivity().getResources().openRawResource(R.raw.vertex_shader)));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(Controller.getResource(R.raw.vertex_shader)));
             String line = "";
             while((line = reader.readLine()) != null) {
                 vertexShaderCode += line +"\n";
             }
 
             //read fragment shader code
-            reader = new BufferedReader(new InputStreamReader(graphics.getActivity().getResources().openRawResource(R.raw.fragment_shader)));
+            reader = new BufferedReader(new InputStreamReader(Controller.getResource(R.raw.fragment_shader)));
             line = "";
             while((line = reader.readLine()) != null) {
                 fragmentxShaderCode += line + "\n";
@@ -128,7 +171,7 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
             GLES20.glAttachShader(shader_program, vShaderLoc);
             GLES20.glAttachShader(shader_program, fShaderLoc);
             GLES20.glLinkProgram(shader_program);
-            int[] result3 = { 1 };
+            int[] result3 = { 0 };
             GLES20.glGetProgramiv(shader_program, GLES20.GL_LINK_STATUS, result3, 0);
             if(result3[0] != GLES20.GL_TRUE) {
                 System.err.println(GLES20.glGetProgramInfoLog(shader_program));
