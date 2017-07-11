@@ -9,6 +9,7 @@ import com.milieur.chips.R;
 import com.milieur.chips.activity.Controller;
 import com.milieur.chips.engine.DrawableObject3D;
 import com.milieur.chips.engine.util.jglm.Mat4;
+import com.milieur.chips.engine.util.jglm.Vec3;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -24,6 +25,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
     private Graphics graphics;
+    private Vec3 lookAt;
 
     //Shader uniforms
     private int shader_program;
@@ -65,6 +67,8 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
         shader_v = GLES20.glGetUniformLocation(shader_program, "v");
         shader_p = GLES20.glGetUniformLocation(shader_program, "p");
         shader_l = GLES20.glGetUniformLocation(shader_program, "light_position");
+
+        lookAt = new Vec3();
     }
 
     @Override
@@ -84,7 +88,7 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
         GLES20.glUseProgram(shader_program);
 
         float[] vMat = new float[16];
-        Matrix.setLookAtM(vMat, 0, 0f, 3f, 4f, 0f, 0f, 0f, 0f, 1f, 0f);
+        Matrix.setLookAtM(vMat, 0, 0f, 3f, 4f, lookAt.getX(), lookAt.getY(), lookAt.getZ(), 0f, 1f, 0f);
         Mat4 matrix_v = new Mat4(vMat);
 
         for(DrawableObject3D object: objects) {
@@ -111,6 +115,10 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
             GLES20.glDisableVertexAttribArray(0);
             GLES20.glDisableVertexAttribArray(1);
         }
+    }
+
+    public void setLookAt(Vec3 lookAt) {
+        this.lookAt = lookAt;
     }
 
     public boolean initShaders() {

@@ -21,7 +21,7 @@ import java.io.InputStream;
 
 public class Controller {
 
-    private Graphics graphics;
+    private static Graphics graphics;
     private static LevelActivity activity;
     private Level lvl;
     private Chip chip;
@@ -34,8 +34,8 @@ public class Controller {
 
 
     public Controller(Context context, LevelActivity activity){
-        this.graphics = new Graphics(context);
-        this.activity = activity;
+        Controller.graphics = new Graphics(context);
+        Controller.activity = activity;
 
         screenSize = new Point();
         activity.getWindowManager().getDefaultDisplay().getSize(screenSize);
@@ -68,10 +68,25 @@ public class Controller {
         float relX = e.getX() / screenSize.x;
         float relY = e.getY() / screenSize.y;
 
-        if(chipArea.contains(lastX, lastY) && !chipArea.contains(relX, relY)) {
-            chip.flick(lastX - relX, lastY - relY);
+        switch(e.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                lastX = relX;
+                lastY = relY;
+                break;
+            case MotionEvent.ACTION_UP:
+                chip.flick();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                chip.setTension(new Vec3(lastY - relY, 0f, lastX - relX));
+                break;
         }
-        lastX = relX;
-        lastY = relY;
+
+//        if(chipArea.contains(lastX, lastY) && !chipArea.contains(relX, relY)) {
+//            chip.flick(lastX - relX, lastY - relY);
+//        }
+    }
+
+    public static void setLookAt(Vec3 lookAt) {
+        graphics.getRenderer().setLookAt(lookAt);
     }
 }

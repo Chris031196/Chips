@@ -12,15 +12,20 @@ import com.milieur.chips.activity.LevelActivity;
 
 public class Graphics extends GLSurfaceView {
 
+    private GraphicsRenderer renderer;
 
     public Graphics(Context context) {
         super(context);
         setEGLContextClientVersion(2);
-        setRenderer(new GraphicsRenderer(this));
+        renderer = new GraphicsRenderer(this);
+        setRenderer(renderer);
     }
 
     public void initFailed(){
         Controller.error("Init Failed!");
     }
 
+    public GraphicsRenderer getRenderer() {
+        return renderer;
+    }
 }
